@@ -30,7 +30,7 @@ categories = ["filesystem"]
 
 [dependencies]
 blake3 = { version = "1.8.2", features = ["mmap"] }
-iddqd = { version = "0.3.11", default-features = false, features = ["std"] }
+iddqd = { version = "0.4.1", default-features = false, features = ["std"] }
 owo-colors = "4.2.2"
 tracing = "0.1.41"
 walkdir = "2.5.0"

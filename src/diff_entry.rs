@@ -83,23 +83,25 @@ impl<'a> DiffEntry<'a> {
             Style::new()
         };
 
-        match self.tag {
-            DiffTag::Equal => {}
-            DiffTag::Delete => {
-                writeln!(f, "{}", self.styled(style))?;
-            }
-            DiffTag::Replace => {
-                // Directory entries are not very useful for me. This should probably also be
-                // customizable.
-                if !self.is_dir() {
-                    writeln!(f, "{}", self.styled(style))?;
-                }
-            }
-            DiffTag::Insert => {
-                writeln!(f, "{}", self.styled(style))?;
-            }
+        if self.is_interesting() {
+            writeln!(f, "{}", self.styled(style))?;
         }
         Ok(())
+    }
+
+    /// Check if a DiffEntry is considered "interesting", which here is equivalent to "do we want it
+    /// to show up in a diff". Equal entries are uninteresting, as are directory Replace entries
+    /// (because directories have no content on their own, so the only thing that can differ is
+    /// metadata, which we usually don't care about anyway).
+    pub(crate) fn is_interesting(&self) -> bool {
+        match self.tag {
+            DiffTag::Equal => false,
+            DiffTag::Delete => true,
+            // Directory entries are not very useful for me. This should probably also be
+            // customizable.
+            DiffTag::Replace => !self.is_dir(),
+            DiffTag::Insert => true,
+        }
     }
 
     #[cfg(test)]

@@ -246,6 +246,13 @@ impl<'a> Diff<'a> {
     pub fn display(&'a self, opts: DisplayDiffOpts) -> impl Display + 'a {
         DisplayDiff { diff: self, opts }
     }
+
+    /// Remove all "uninteresting" values from this diff (i.e. those that would not show up in a
+    /// diff). You can check whether a diff is semantically empty (i.e. contains no interesting
+    /// values) by calling this method, followed by [`is_empty`].
+    pub fn retain_interesting(&mut self) -> () {
+        self.entries.retain(|e| e.is_interesting())
+    }
 }
 
 /// Display the diff with default options (no ANSI colors).
@@ -356,6 +363,39 @@ mod tests {
             ]
         );
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_retain_interesting() -> Result<()> {
+        let mut old = TempTree::new().unwrap();
+        let mut new = TempTree::new().unwrap();
+        for tree in [&mut old, &mut new] {
+            tree.dir("a")
+                .unwrap()
+                .file("a/1", "1")
+                .unwrap()
+                .file("a/2", "2")
+                .unwrap()
+                .dir("b")
+                .unwrap()
+                .file("b/1", "1")
+                .unwrap()
+                .file("b/2", "2")
+                .unwrap()
+                .dir("c")
+                .unwrap()
+                .file("c/1", "1")
+                .unwrap()
+                .file("c/2", "2")
+                .unwrap();
+        }
+
+        let mut diff = Diff::new(old.as_ref(), new.as_ref())?;
+
+        assert!(!diff.entries.is_empty());
+        diff.retain_interesting();
+        assert!(diff.entries.is_empty());
         Ok(())
     }
 }
